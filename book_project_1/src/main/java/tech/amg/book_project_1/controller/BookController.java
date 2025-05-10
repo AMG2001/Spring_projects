@@ -71,10 +71,15 @@ public class BookController {
     }
 
     @PutMapping
-    public String updateBook(@RequestBody Book updatedBook) {
+    public String updateBook(@RequestBody BookDTO updatedBook) {
+
         for (int i = 0; i < books.size(); i++) {
-            if (books.get(i).getId() == updatedBook.getId()) {
-                books.set(i,updatedBook);
+            long bookId=0;
+            if (books.get(i).getTitle().equalsIgnoreCase(updatedBook.getTitle())) {
+                bookId = books.get(i).getId();
+                Book book = bookMapper.bookDtoToBook(updatedBook);
+                book.setId(bookId);
+                books.set(i,book);
                 return "book updated successfully !!";
             }
         }

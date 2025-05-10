@@ -5,6 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tech.amg.book_project_1.domian.dto.BookDTO;
 import tech.amg.book_project_1.domian.entities.Book;
+import tech.amg.book_project_1.exceptions.BookAlreadyExistsException;
+import tech.amg.book_project_1.exceptions.BookNotFoundException;
+import tech.amg.book_project_1.exceptions.IdNotExistsException;
+import tech.amg.book_project_1.exceptions.TitleNotExistsException;
 import tech.amg.book_project_1.mapper.BookMapper;
 
 import javax.swing.text.html.Option;
@@ -40,15 +44,19 @@ public class BookService {
         return category == null ? books : books.stream().filter(book -> book.getCategory().equalsIgnoreCase(category)).toList();
     }
 
-    public Optional<Book> getBookById(int id){
-        return books.stream().filter(book -> book.getId() == id).findFirst();
+    public Book getBookById(int id){
+        return books.stream().filter(book -> book.getId() == id).findFirst().orElseThrow(
+                ()-> new BookNotFoundException("id : "+id+" not exists !!")
+        );
     }
 
-    public Optional<Book> getBookByTitle(String title){
-        return books.stream().filter(book -> book.getTitle().equalsIgnoreCase(title)).findFirst();
+    public Book getBookByTitle(String title){
+        return books.stream().filter(book -> book.getTitle().equalsIgnoreCase(title)).findFirst().orElseThrow(
+                ()-> new BookNotFoundException("There is no book with title : "+title)
+        );
     }
 
-    public boolean updateBook(BookDTO updateBookDTO){
+    public void updateBook(BookDTO updateBookDTO){
         for (int i = 0; i < books.size(); i++) {
             long bookId = 0;
             if (books.get(i).getTitle().equalsIgnoreCase(updateBookDTO.getTitle())) {
@@ -56,22 +64,24 @@ public class BookService {
                 Book book = bookMapper.bookDtoToBook(updateBookDTO);
                 book.setId(bookId);
                 books.set(i, book);
-                return true;
+                return;
             }
         }
-        return false;
+        throw new TitleNotExistsException("book with title : "+updateBookDTO.getTitle()+" not exists !!!");
     }
 
-    public boolean createBook(BookDTO createdBookDTO){
+    public void createBook(BookDTO createdBookDTO){
         boolean isNewBook = books.stream().noneMatch(book -> book.getTitle().equalsIgnoreCase(createdBookDTO.getTitle()));
         if (isNewBook) {
             books.add(bookMapper.bookDtoToBook(createdBookDTO));
-            return true;
+            return;
         }
-        return false;
+        throw new BookAlreadyExistsException("Book with title : "+createdBookDTO.getTitle()+" is already exists !!");
     }
 
-    public boolean deleteBookById(int id){
-        return books.removeIf(book -> book.getId() == id);
+    public void deleteBookById(int id){
+       if( books.removeIf(book -> book.getId() == id) == true)
+           return;
+       throw new IdNotExistsException("There is no book with ID : "+id + " to be deleted !!");
     }
 }

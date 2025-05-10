@@ -1,95 +1,65 @@
 package tech.amg.book_project_1.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.annotation.PostConstruct;
-import tech.amg.book_project_1.dto.BookDTO;
-import tech.amg.book_project_1.entities.Book;
-import tech.amg.book_project_1.mapper.BookMapper;
+import tech.amg.book_project_1.domian.dto.BookDTO;
+import tech.amg.book_project_1.domian.entities.Book;
+import tech.amg.book_project_1.service.BookService;
 
 
+@Tag(name = "Books endpoints",description = "Contain all operations that are related to books")
 @RestController
 @RequestMapping("api/books")
 public class BookController {
 
-    private BookMapper bookMapper;
-
-    List<Book> books = new ArrayList();
-
     @Autowired
-    public BookController(BookMapper bookMapper){
-        this.bookMapper = bookMapper;
-    }
-
-
-    @PostConstruct
-    private void initializeBooks() {
-        books.addAll(List.of(
-                new Book( "The Great Gatsby", "F. Scott Fitzgerald", "Fiction", 0),
-                new Book( "To Kill a Mockingbird", "Harper Lee", "Fiction", 0),
-                new Book( "1984", "George Orwell", "Dystopian", 0),
-                new Book( "Pride and Prejudice", "Jane Austen", "Romance", 0),
-                new Book( "The Catcher in the Rye", "J.D. Salinger", "Coming-of-age", 0)));
-    }
-
+    private BookService bookService;
 
 
     @GetMapping
-    public List<Book> getBooks(@RequestParam(required = false) String category) {
-       return category == null ? books : books.stream().filter(book -> book.getCategory().equalsIgnoreCase(category)).toList();
+    public List<Book> getBooks(@Parameter(description = "Optional query parameter for filtering") @RequestParam(required = false) String category) {
+        return bookService.getBooks(category);
     }
 
 
     @GetMapping("/book/{id}")
-    public ResponseEntity<?> getBookByIndex(@PathVariable int id) {
-        Optional<Book> returnedBook = books.stream().filter(book -> book.getId() == id).findFirst();
-        return returnedBook.isPresent() ?
-                ResponseEntity.ok(returnedBook.get()) :
-                ResponseEntity.badRequest().body("Requested Index is not available !!");
+    public ResponseEntity<?> getBookByIndex(@Parameter(description = "Id of the book")@PathVariable int id) {
+        Book book = bookService.getBookById(id);
+        return ResponseEntity.ok(book);
     }
 
     @GetMapping("/book/title/{title}")
-    public ResponseEntity<?> getBookByTitle(@PathVariable String title) {
-        Optional<Book> foundedBook = books.stream().filter(book -> book.getTitle().equalsIgnoreCase(title)).findFirst();
-        return foundedBook.isPresent() ? ResponseEntity.ok(foundedBook.get()) : ResponseEntity.ok("There is no book with this title !!");
+    public ResponseEntity<?> getBookByTitle(@Parameter(description = "title of the book that want to get")@PathVariable String title) {
+        Book foundedBook = bookService.getBookByTitle(title);
+        return ResponseEntity.ok(foundedBook);
+
     }
 
     @PostMapping
-    public String createBook(@RequestBody BookDTO newBook){
-        boolean isNewBook = books.stream().noneMatch(book -> book.getTitle().equalsIgnoreCase(newBook.getTitle()));
-        if(isNewBook){
-            books.add(bookMapper.bookDtoToBook(newBook));
-            return "book added successfully !!";
-        }
-        return "This book is already exists !!";
+    @ResponseStatus(HttpStatus.CREATED)
+    public void createBook(@RequestBody BookDTO newBook) {
+        bookService.createBook(newBook);
     }
 
     @PutMapping
-    public String updateBook(@RequestBody BookDTO updatedBook) {
-
-        for (int i = 0; i < books.size(); i++) {
-            long bookId=0;
-            if (books.get(i).getTitle().equalsIgnoreCase(updatedBook.getTitle())) {
-                bookId = books.get(i).getId();
-                Book book = bookMapper.bookDtoToBook(updatedBook);
-                book.setId(bookId);
-                books.set(i,book);
-                return "book updated successfully !!";
-            }
-        }
-        return "There is no book to be updated !!";
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateBook(@RequestBody BookDTO updatedBook) {
+        bookService.updateBook(updatedBook);
     }
 
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("book/{id}")
-    public String deleteBookById(@PathVariable int id){
-       boolean isDeleted =  books.removeIf(book -> book.getId()==id);
-        return isDeleted ? "book deleted successfully !!" : "There is no book with this id !!";
+    public void deleteBookById(@Parameter(description = "id of the book that you want to remove") @PathVariable int id) {
+        bookService.deleteBookById(id);
     }
 }

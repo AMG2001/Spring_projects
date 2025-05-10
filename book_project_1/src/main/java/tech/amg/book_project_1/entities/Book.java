@@ -1,15 +1,17 @@
 package tech.amg.book_project_1.entities;
 
-import lombok.NoArgsConstructor;
-
-@NoArgsConstructor
 public class Book {
     public static long lastIdValue=1;
     long id;
     String title, author, category;
     int rating;
 
-    public Book(String title, String author, String category, int rating) {
+    public Book() {
+
+    }
+
+    public Book
+            (String title, String author, String category, int rating) {
         this.id = lastIdValue++;
         this.title = title;
         this.author = author;

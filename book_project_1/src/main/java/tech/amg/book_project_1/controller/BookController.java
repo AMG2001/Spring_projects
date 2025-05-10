@@ -20,11 +20,11 @@ public class BookController {
     @PostConstruct
     private void initializeBooks() {
         books.addAll(List.of(
-                new Book(1,"The Great Gatsby", "F. Scott Fitzgerald", "Fiction",0),
-                new Book(2,"To Kill a Mockingbird", "Harper Lee", "Fiction",0),
-                new Book(3,"1984", "George Orwell", "Dystopian",0),
-                new Book(4,"Pride and Prejudice", "Jane Austen", "Romance",0),
-                new Book(5,"The Catcher in the Rye", "J.D. Salinger", "Coming-of-age",0)));
+                new Book(1, "The Great Gatsby", "F. Scott Fitzgerald", "Fiction", 0),
+                new Book(2, "To Kill a Mockingbird", "Harper Lee", "Fiction", 0),
+                new Book(3, "1984", "George Orwell", "Dystopian", 0),
+                new Book(4, "Pride and Prejudice", "Jane Austen", "Romance", 0),
+                new Book(5, "The Catcher in the Rye", "J.D. Salinger", "Coming-of-age", 0)));
     }
 
     @GetMapping
@@ -33,10 +33,11 @@ public class BookController {
     }
 
 
-    @GetMapping("/book/index/{index}")
-    public ResponseEntity<?> getBookByIndex(@PathVariable int index) {
-        return index < books.size() ?
-                ResponseEntity.ok(books.get(index)) :
+    @GetMapping("/book/{id}")
+    public ResponseEntity<?> getBookByIndex(@PathVariable int id) {
+        Optional<Book> returnedBook = books.stream().filter(book -> book.getId() == id).findFirst();
+        return returnedBook.isPresent() ?
+                ResponseEntity.ok(returnedBook.get()) :
                 ResponseEntity.badRequest().body("Requested Index is not available !!");
     }
 
@@ -48,7 +49,7 @@ public class BookController {
 
     @PostMapping
     public String createBook(@RequestBody Book newBook){
-        boolean isNewBook = books.stream().noneMatch(book -> book.getTitle().equalsIgnoreCase(newBook.getTitle()));
+        boolean isNewBook = books.stream().noneMatch(book -> book.getId() == newBook.getId());
         if(isNewBook){
             books.add(newBook);
             return "book added successfully !!";
@@ -57,14 +58,20 @@ public class BookController {
     }
 
     @PutMapping
-    public String updateBook(@RequestBody Book updatedBook){
-
+    public String updateBook(@RequestBody Book updatedBook) {
         for (int i = 0; i < books.size(); i++) {
-            if (books.get(i).getTitle().equalsIgnoreCase(updatedBook.getTitle())) {
+            if (books.get(i).getId() == updatedBook.getId()) {
                 books.set(i,updatedBook);
                 return "book updated successfully !!";
             }
         }
         return "There is no book to be updated !!";
+    }
+
+
+    @DeleteMapping("book/{id}")
+    public String deleteBookById(@PathVariable int id){
+       boolean isDeleted =  books.removeIf(book -> book.getId()==id);
+        return isDeleted ? "book deleted successfully !!" : "There is no book with this id !!";
     }
 }

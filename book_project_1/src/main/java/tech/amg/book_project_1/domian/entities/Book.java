@@ -1,4 +1,4 @@
-package tech.amg.book_project_1.entities;
+package tech.amg.book_project_1.domian.entities;
 
 public class Book {
     public static long lastIdValue=1;

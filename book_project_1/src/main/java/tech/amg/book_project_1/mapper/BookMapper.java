@@ -1,8 +1,8 @@
 package tech.amg.book_project_1.mapper;
 
 import org.mapstruct.*;
-import tech.amg.book_project_1.dto.BookDTO;
-import tech.amg.book_project_1.entities.Book;
+import tech.amg.book_project_1.domian.dto.BookDTO;
+import tech.amg.book_project_1.domian.entities.Book;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface BookMapper {

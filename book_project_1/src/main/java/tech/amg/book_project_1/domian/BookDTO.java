@@ -1,4 +1,4 @@
-package tech.amg.book_project_1.dto;
+package tech.amg.book_project_1.domian.dto;
 
 public class BookDTO {
     String title, author, category;

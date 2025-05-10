@@ -4,28 +4,41 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.PostConstruct;
+import tech.amg.book_project_1.dto.BookDTO;
 import tech.amg.book_project_1.entities.Book;
+import tech.amg.book_project_1.mapper.BookMapper;
 
 
 @RestController
 @RequestMapping("api/books")
 public class BookController {
 
+    private BookMapper bookMapper;
+
     List<Book> books = new ArrayList();
+
+    @Autowired
+    public BookController(BookMapper bookMapper){
+        this.bookMapper = bookMapper;
+    }
+
 
     @PostConstruct
     private void initializeBooks() {
         books.addAll(List.of(
-                new Book(1, "The Great Gatsby", "F. Scott Fitzgerald", "Fiction", 0),
-                new Book(2, "To Kill a Mockingbird", "Harper Lee", "Fiction", 0),
-                new Book(3, "1984", "George Orwell", "Dystopian", 0),
-                new Book(4, "Pride and Prejudice", "Jane Austen", "Romance", 0),
-                new Book(5, "The Catcher in the Rye", "J.D. Salinger", "Coming-of-age", 0)));
+                new Book( "The Great Gatsby", "F. Scott Fitzgerald", "Fiction", 0),
+                new Book( "To Kill a Mockingbird", "Harper Lee", "Fiction", 0),
+                new Book( "1984", "George Orwell", "Dystopian", 0),
+                new Book( "Pride and Prejudice", "Jane Austen", "Romance", 0),
+                new Book( "The Catcher in the Rye", "J.D. Salinger", "Coming-of-age", 0)));
     }
+
+
 
     @GetMapping
     public List<Book> getBooks(@RequestParam(required = false) String category) {
@@ -48,10 +61,10 @@ public class BookController {
     }
 
     @PostMapping
-    public String createBook(@RequestBody Book newBook){
-        boolean isNewBook = books.stream().noneMatch(book -> book.getId() == newBook.getId());
+    public String createBook(@RequestBody BookDTO newBook){
+        boolean isNewBook = books.stream().noneMatch(book -> book.getTitle().equalsIgnoreCase(newBook.getTitle()));
         if(isNewBook){
-            books.add(newBook);
+            books.add(bookMapper.bookDtoToBook(newBook));
             return "book added successfully !!";
         }
         return "This book is already exists !!";
